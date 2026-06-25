@@ -10,21 +10,23 @@ These tools are built using **vanilla JavaScript** and modern responsive CSS (vi
 
 | Tool File | Production Name | Primary Target User | Key Function | Output Artifact |
 | :--- | :--- | :--- | :--- | :--- |
-| `builder-builder.html` | **Submission Builder Builder (Standard)** | Staff / Academics | Designs dynamic multi-part student reflection forms. | A standalone `.html` web form |
 | `builder-builder-zip.html` | **Submission Builder Builder (ZIP/Media)** | Staff / Academics | Designs reflection forms that capture large media files. | A standalone `.html` web form |
 | `moodles.html` | **Moodles: Bulk Feedback Generator** | Marking Tutors | Cross-references Moodle ZIP structure with grading CSVs. | A bulk-uploadable Feedback ZIP |
 | `Turnitin_rubric_viewer.html` | **Turnitin Rubric & RBC Tool** | Staff / External Examiners | Visualizes, edits, and exports proprietary Turnitin `.rbc` files. | Fixed `.rbc` or formatted `.docx` |
+
+> **Archived:** `builder-builder.html` (Standard, no media support) has been retired in favour of `builder-builder-zip.html` and moved to `_archive/`.
 
 ---
 
 ## Deep Dive into Content
 
-### 1. Submission Builder Builder (`builder-builder.html` & `builder-builder-zip.html`)
-These utilities allow academics to construct bespoke digital scaffolding forms for students to compile their submissions. Instead of receiving a chaotic array of files, tutors can configure exactly what they need a student to declare or reflect upon.
+### 1. Submission Builder Builder (`builder-builder-zip.html`)
 
-* **How it works:** Tutors open the app, arrange components on the workspace canvas (Student Details, Rich Text blocks, Checklist tables, Target Reflection Questions, and AI Disclosures), and click **Export HTML**.
-* **The Output:** A completely customized, beautifully styled single-file HTML form. Tutors distribute this file directly to students (via Moodle, email, or a shared drive). 
-* **Student Experience:** Students fill out the form locally. The form tracks their word counts, alerts them if they embed images, verifies necessary checklist items, saves progress automatically to local storage, and compiles everything cleanly into a unified `.docx` file (or a bundled `.zip` portfolio package for the media version) ready for final upload.
+This utility allows academics to construct bespoke digital scaffolding forms for students to compile their submissions. Instead of receiving a chaotic array of files, tutors can configure exactly what they need a student to declare or reflect upon.
+
+* **How it works:** Tutors open the app, arrange components on the workspace canvas (Student Details, Rich Text blocks, Checklist tables, Targeted Reflection Questions, File Attachment slots, and AI Disclosures), and click **Export HTML**.
+* **The Output:** A completely customized, beautifully styled single-file HTML form. Tutors distribute this file directly to students (via Moodle, email, or a shared drive).
+* **Student Experience:** Students fill out the form locally. The form tracks their word counts, alerts them if they embed images, verifies necessary checklist items, saves progress automatically to local storage, and compiles everything into a bundled `.zip` submission package (containing a `.docx` document and all attached media files) ready for final upload.
 
 ### 2. Moodles: Bulk Feedback Generator (`moodles.html`)
 Manually parsing student file folders down from Moodle and matching them to individual feedback matrices is an administrative bottleneck. **Moodles** automates this mapping seamlessly in a 3-step client-side wizard.
