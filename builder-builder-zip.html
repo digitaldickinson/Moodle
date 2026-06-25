@@ -22,7 +22,7 @@
     <!-- ─── Header ──────────────────────────────────────────────────────────── -->
     <header class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
         <div>
-            <h1 class="text-lg font-bold tracking-tight">SUBMISSION BUILDER BUILDER (ZIP) <span class="text-slate-500 font-normal text-sm">v2.1</span></h1>
+            <h1 class="text-lg font-bold tracking-tight">SUBMISSION BUILDER BUILDER (ZIP) <span class="text-slate-500 font-normal text-sm">v2.0</span></h1>
             <p class="text-slate-400 text-xs mt-0.5">Compose a student submission form, then export it as a standalone HTML file</p>
         </div>
         <div class="flex items-center gap-3">
@@ -1741,7 +1741,8 @@
             ${metaStmts}
             const sections=[];
             ${docCalls}
-            const _sName=(document.getElementById('studentName')?.value||'Student').trim().replace(/[^a-zA-Z0-9_-]/g,'');
+            const _sNameRaw=(document.getElementById('studentName')?.value||'Student').trim();
+            const _sName=_sNameRaw.replace(/[^a-zA-Z0-9_-]/g,'');
             const _sId=(document.getElementById('studentId')?.value||'ID').trim();
             const filenameBase=_sId+'_'+_sName+'_${filenameLabel}_Submission';
             const docBody='<h1 style="font-family:Arial,sans-serif;font-size:22px;font-weight:bold;margin-bottom:4px;">${bb(title).toUpperCase()}</h1>'+
@@ -1757,7 +1758,7 @@
             ${zipMediaJs}
             const now=new Date().toISOString();
             let readme='SUBMISSION PACKAGE\\n==================\\n';
-            readme+='Name:     '+(_sName||'Unknown')+'\\n';
+            readme+='Name:     '+(_sNameRaw||'Unknown')+'\\n';
             readme+='ID:       '+(_sId||'Unknown')+'\\n';
             readme+='Form:     '+${JSON.stringify(title)}+'\\n';
             readme+='Created:  '+now+'\\n\\n';
@@ -2697,7 +2698,7 @@ function docSection_${k}() {
 
         function buildAcceptAttr(types) {
             if (!types || !types.length || types.includes('Any')) return '';
-            const map = { PDF: '.pdf', Audio: '.mp3,.wav,.aac,.ogg,.flac,.m4a', Image: '.jpg,.jpeg,.png,.gif,.webp,.svg', Video: '.mp4,.mov,.avi,.mkv,.webm', Document: '.doc,.docx,.pdf,.txt,.rtf' };
+            const map = { PDF: '.pdf', Audio: '.wav,.mp3,.aif,.aiff,.m4a', Image: '.jpg,.jpeg,.png,.gif,.webp,.svg', Video: '.mp4,.mov,.avi,.mkv,.webm', Document: '.doc,.docx,.pdf,.txt,.rtf' };
             const parts = types.flatMap(t => map[t] ? map[t].split(',') : []);
             return [...new Set(parts)].join(',');
         }
