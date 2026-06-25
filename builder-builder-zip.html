@@ -1722,7 +1722,7 @@
                 banner.className='mx-6 mt-4 p-4 bg-red-50 border border-red-300 rounded-lg flex items-start gap-3';
                 content.innerHTML='<p class="text-sm font-bold text-red-800 mb-1">File attachments missing</p>'+
                     '<p class="text-sm text-red-700 leading-relaxed">The following files were attached in a previous session but <strong>cannot be recovered</strong>. Please re-attach them before downloading: '+
-                    staleMeta.map(m=>'<strong>'+escapeHtml(m.name)+'</strong> ('+escapeHtml(m.label)+')').join(', ')+'.</p>';
+                    staleMeta.map(m=>'<strong>'+escapeHtml(m.name)+'</strong> ('+escapeHtml(m.label)+', '+(m.size?(m.size/1024/1024).toFixed(2)+' MB':'unknown size')+')').join(', ')+'.</p>';
             } else if(attached.length>0){
                 banner.className='mx-6 mt-4 p-4 bg-orange-50 border border-orange-300 rounded-lg flex items-start gap-3';
                 content.innerHTML='<p class="text-sm font-bold text-orange-800 mb-1">Files in browser memory</p>'+
@@ -1741,7 +1741,7 @@
             ${metaStmts}
             const sections=[];
             ${docCalls}
-            const _sName=(document.getElementById('studentName')?.value||'Student').trim().replace(/\\s+/g,'');
+            const _sName=(document.getElementById('studentName')?.value||'Student').trim().replace(/[^a-zA-Z0-9_-]/g,'');
             const _sId=(document.getElementById('studentId')?.value||'ID').trim();
             const filenameBase=_sId+'_'+_sName+'_${filenameLabel}_Submission';
             const docBody='<h1 style="font-family:Arial,sans-serif;font-size:22px;font-weight:bold;margin-bottom:4px;">${bb(title).toUpperCase()}</h1>'+
