@@ -758,11 +758,21 @@
                 }));
                 const ind = document.getElementById('autoSaveIndicator');
                 if (ind) {
-                    ind.classList.remove('hidden');
+                    ind.textContent = 'Saved';
+                    ind.className = 'text-xs text-slate-500 ml-1';
                     clearTimeout(_saveTimer);
                     _saveTimer = setTimeout(() => ind.classList.add('hidden'), 1500);
                 }
-            } catch(e) {}
+            } catch(e) {
+                if (e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22)) {
+                    const ind = document.getElementById('autoSaveIndicator');
+                    if (ind) {
+                        clearTimeout(_saveTimer);
+                        ind.textContent = 'Storage full — export schema to preserve your work';
+                        ind.className = 'text-xs text-red-400 font-semibold ml-1';
+                    }
+                }
+            }
         }
 
         function loadBuilderState() {
@@ -1300,13 +1310,13 @@
 
             // --- Indices and counts ---
             let sIdx = 0;
-            const sectionIndices = blocks.map(block => blockIsRequired(block) ? sIdx++ : null);
+            const sectionIndexMap = new Map(blocks.map(block => [block.id, blockIsRequired(block) ? sIdx++ : null]));
             const requiredCount  = sIdx;
 
             // --- Form HTML ---
-            const formHtml = blocks.map((block, i) => {
+            const formHtml = blocks.map(block => {
                 const gen = BLOCK_HTML[block.type];
-                return gen ? gen(block.config, `b${block.id}`, sectionIndices[i]) : '';
+                return gen ? gen(block.config, `b${block.id}`, sectionIndexMap.get(block.id)) : '';
             }).join('\n');
 
             // --- JS fragments and assembled function contributions ---
@@ -1359,8 +1369,7 @@
                 const slots = fileUploadBlocks.map(block => {
                     const k = `b${block.id}`;
                     const c = block.config;
-                    const bIdx = blocks.indexOf(block);
-                    const si = sectionIndices[bIdx];
+                    const si = sectionIndexMap.get(block.id);
                     const accept = buildAcceptAttr(c.acceptedTypes || []);
                     const acceptAttr = accept ? ` accept="${accept}"` : '';
                     const slotLabel = bb(c.slotLabel || 'Attach your file');
@@ -1806,10 +1815,10 @@
             const subtitle = document.getElementById('cfg-subtitle').value.trim();
 
             let sIdx = 0;
-            const sectionIndices = blocks.map(block => blockIsRequired(block) ? sIdx++ : null);
-            const formHtml = blocks.map((block, i) => {
+            const sectionIndexMap = new Map(blocks.map(block => [block.id, blockIsRequired(block) ? sIdx++ : null]));
+            const formHtml = blocks.map(block => {
                 const gen = BLOCK_HTML[block.type];
-                return gen ? gen(block.config, `b${block.id}`, sectionIndices[i]) : '';
+                return gen ? gen(block.config, `b${block.id}`, sectionIndexMap.get(block.id)) : '';
             }).join('\n');
             const previewFileUploadBlocks = blocks.filter(b => b.type === 'file-upload');
             const previewFileAttachHtml = previewFileUploadBlocks.length === 0 ? '' : (() => {
