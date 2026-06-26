@@ -24,7 +24,7 @@
     <!-- ─── Header ──────────────────────────────────────────────────────────── -->
     <header class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
         <div>
-            <h1 class="text-lg font-bold tracking-tight">SUBMISSION BUILDER BUILDER (ZIP) <span class="text-slate-500 font-normal text-sm">v2.2</span></h1>
+            <h1 class="text-lg font-bold tracking-tight">SUBMISSION BUILDER BUILDER (ZIP) <span class="text-slate-500 font-normal text-sm">v2.3</span></h1>
             <p class="text-slate-400 text-xs mt-0.5">Compose a student submission form, then export it as a standalone HTML file</p>
             <div id="storageMeter" class="hidden mt-1.5 flex items-center gap-1.5">
                 <div class="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
@@ -1703,14 +1703,15 @@
             return str.split(/\\n[ \\t]*\\n/).filter(b=>b.trim()).map(b=>'<p style="margin:0 0 10px 0;">'+escapeHtml(b.trim()).replace(/\\n/g,'<br>')+'</p>').join('');
         }
         function styleEditorHtml(html) {
-            const doc = new DOMParser().parseFromString(html,'text/html');
-            doc.querySelectorAll('h3').forEach(el=>{el.style.cssText='font-family:Arial,sans-serif;font-size:15px;font-weight:bold;margin:14px 0 5px 0;color:#1e293b;';});
-            doc.querySelectorAll('h2').forEach(el=>{el.style.cssText='font-family:Arial,sans-serif;font-size:16px;font-weight:bold;margin:16px 0 6px 0;color:#1e293b;';});
-            doc.querySelectorAll('p').forEach(el=>{el.style.cssText='font-family:Arial,sans-serif;font-size:13px;margin:0 0 9px 0;line-height:1.6;';});
-            doc.querySelectorAll('a').forEach(el=>{el.style.cssText='color:#4338ca;';});
-            doc.querySelectorAll('b,strong').forEach(el=>{el.style.fontWeight='bold';});
-            doc.querySelectorAll('i,em').forEach(el=>{el.style.fontStyle='italic';});
-            return doc.body.innerHTML;
+            const doc  = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+            const root = doc.body.firstChild || doc.body;
+            root.querySelectorAll('h3').forEach(el=>{el.style.cssText='font-family:Arial,sans-serif;font-size:15px;font-weight:bold;margin:14px 0 5px 0;color:#1e293b;';});
+            root.querySelectorAll('h2').forEach(el=>{el.style.cssText='font-family:Arial,sans-serif;font-size:16px;font-weight:bold;margin:16px 0 6px 0;color:#1e293b;';});
+            root.querySelectorAll('p').forEach(el=>{el.style.cssText='font-family:Arial,sans-serif;font-size:13px;margin:0 0 9px 0;line-height:1.6;';});
+            root.querySelectorAll('a').forEach(el=>{el.style.cssText='color:#4338ca;';});
+            root.querySelectorAll('b,strong').forEach(el=>{el.style.fontWeight='bold';});
+            root.querySelectorAll('i,em').forEach(el=>{el.style.fontStyle='italic';});
+            return root.innerHTML;
         }
         function formatDoc(command) {
             if (command==='h3') {
