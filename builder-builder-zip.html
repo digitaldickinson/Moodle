@@ -15,6 +15,8 @@
         .bb-input { width: 100%; padding: 7px 10px; border: 1px solid #e2e8f0; border-radius: 7px; font-size: 13px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: 'Segoe UI', sans-serif; }
         .bb-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
         .bb-label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+        #storageMeterBar { width: 0%; background: #10b981; }
+        #storageMeterLabel { font-variant-numeric: tabular-nums; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden bg-slate-100 text-slate-800">
@@ -22,8 +24,14 @@
     <!-- ─── Header ──────────────────────────────────────────────────────────── -->
     <header class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
         <div>
-            <h1 class="text-lg font-bold tracking-tight">SUBMISSION BUILDER BUILDER (ZIP) <span class="text-slate-500 font-normal text-sm">v2.0</span></h1>
+            <h1 class="text-lg font-bold tracking-tight">SUBMISSION BUILDER BUILDER (ZIP) <span class="text-slate-500 font-normal text-sm">v2.2</span></h1>
             <p class="text-slate-400 text-xs mt-0.5">Compose a student submission form, then export it as a standalone HTML file</p>
+            <div id="storageMeter" class="hidden mt-1.5 flex items-center gap-1.5">
+                <div class="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div id="storageMeterBar" class="h-full rounded-full transition-all duration-300"></div>
+                </div>
+                <span id="storageMeterLabel" class="text-xs text-slate-400"></span>
+            </div>
         </div>
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-1.5">
@@ -57,6 +65,12 @@
             </button>
         </div>
     </header>
+
+    <!-- ─── Storage Banner ───────────────────────────────────────────────────── -->
+    <div id="storageBanner" class="hidden flex-shrink-0" role="status" aria-live="polite">
+        <span id="storageBannerMsg"></span>
+        <button type="button" onclick="exportSchema()" id="storageBannerAction" class="hidden font-bold text-xs underline hover:no-underline whitespace-nowrap">Export Schema Now</button>
+    </div>
 
     <!-- ─── Main ─────────────────────────────────────────────────────────────── -->
     <div class="flex flex-1 overflow-hidden">
@@ -753,6 +767,46 @@
         // ─── Builder State Persistence ─────────────────────────────────────────
         const BB_LS_KEY = 'bb_builder_state';
         let _saveTimer = null;
+        let _storageFull = false;
+
+        function showStorageBanner(pct) {
+            const banner = document.getElementById('storageBanner');
+            const msg    = document.getElementById('storageBannerMsg');
+            const btn    = document.getElementById('storageBannerAction');
+            if (!banner || !msg || !btn) return;
+            if (_storageFull || pct >= 95) {
+                banner.className = 'flex-shrink-0 px-6 py-2 flex items-center justify-between text-sm bg-red-900 text-red-100 border-b border-red-950';
+                msg.textContent  = 'Storage full — auto-save has stopped. Export your schema to avoid losing work.';
+                btn.classList.remove('hidden');
+            } else if (pct >= 75) {
+                banner.className = 'flex-shrink-0 px-6 py-2 flex items-center justify-between text-sm bg-amber-800 text-amber-100 border-b border-amber-900';
+                msg.textContent  = 'Storage at ' + pct + '% — consider exporting your schema as a backup.';
+                btn.classList.remove('hidden');
+            } else {
+                banner.className = 'hidden';
+                btn.classList.add('hidden');
+            }
+        }
+
+        async function updateStorageMeter() {
+            if (!navigator.storage || !navigator.storage.estimate) return;
+            try {
+                const { usage, quota } = await navigator.storage.estimate();
+                if (!quota) return;
+                const pct  = Math.round(usage / quota * 100);
+                const bar  = document.getElementById('storageMeterBar');
+                const lbl  = document.getElementById('storageMeterLabel');
+                const wrap = document.getElementById('storageMeter');
+                if (bar && lbl && wrap) {
+                    wrap.classList.remove('hidden');
+                    bar.style.width      = pct + '%';
+                    bar.style.background = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#10b981';
+                    lbl.textContent      = pct + '% used';
+                    lbl.style.color      = pct >= 90 ? '#fca5a5' : pct >= 70 ? '#fde68a' : '#94a3b8';
+                }
+                showStorageBanner(pct);
+            } catch(e) {}
+        }
 
         function saveBuilderState() {
             try {
@@ -766,21 +820,28 @@
                         label:    document.getElementById('cfg-label').value
                     }
                 }));
+                const wasFullBefore = _storageFull;
+                _storageFull = false;
                 const ind = document.getElementById('autoSaveIndicator');
                 if (ind) {
-                    ind.textContent = 'Saved';
-                    ind.className = 'text-xs text-slate-500 ml-1';
+                    ind.textContent = wasFullBefore ? 'Auto-save resumed' : 'Saved';
+                    ind.className   = wasFullBefore
+                        ? 'text-xs text-emerald-400 font-semibold ml-1'
+                        : 'text-xs text-slate-500 ml-1';
                     clearTimeout(_saveTimer);
-                    _saveTimer = setTimeout(() => ind.classList.add('hidden'), 1500);
+                    _saveTimer = setTimeout(() => ind.classList.add('hidden'), wasFullBefore ? 3000 : 1500);
                 }
+                updateStorageMeter();
             } catch(e) {
                 if (e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22)) {
+                    _storageFull = true;
                     const ind = document.getElementById('autoSaveIndicator');
                     if (ind) {
                         clearTimeout(_saveTimer);
-                        ind.textContent = 'Storage full — export schema to preserve your work';
-                        ind.className = 'text-xs text-red-400 font-semibold ml-1';
+                        ind.textContent = 'Storage full';
+                        ind.className   = 'text-xs text-red-400 font-semibold ml-1';
                     }
+                    showStorageBanner(100);
                 }
             }
         }
@@ -2762,6 +2823,13 @@ function docSection_${k}() {
         renderCanvas();
         document.querySelectorAll('#cfg-title,#cfg-subtitle,#cfg-welcome,#cfg-moodle,#cfg-label')
             .forEach(el => el.addEventListener('input', saveBuilderState));
+        updateStorageMeter();
+        window.addEventListener('beforeunload', e => {
+            if (_storageFull && blocks.length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
     </script>
 </body>
 </html>
